@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Icon } from '../components/common/Icon';
 import { TransactionRow } from '../components/transactions/TransactionRow';
 import { MONTHS } from '../utils/constants';
-import { formatCurrency, getGreeting } from '../utils/helpers';
+import { formatCurrency, getGreeting, getCategory } from '../utils/helpers';
 
 export const HomePage = ({ ctx }) => {
   const { user, accounts, transactions, currencySymbol, navigate, setTab } = ctx;
@@ -57,6 +57,7 @@ export const HomePage = ({ ctx }) => {
 
   return (
     <div>
+      {/* Top Section */}
       <div className="page-top" style={{ paddingBottom: 0 }}>
         <div style={{
           display: 'flex',
@@ -85,7 +86,7 @@ export const HomePage = ({ ctx }) => {
           </div>
         </div>
 
-        {/* Month selector */}
+        {/* Month Selector */}
         <div className="month-tabs" style={{ marginBottom: 16 }}>
           {MONTHS.map((month, index) => (
             <button
@@ -99,7 +100,7 @@ export const HomePage = ({ ctx }) => {
         </div>
       </div>
 
-      {/* Big spend card */}
+      {/* Big Spend Card */}
       <div style={{ padding: '0 18px 16px' }}>
         <div className="card" style={{
           background: 'linear-gradient(135deg,#1a1a3e,#1e1040)',
@@ -144,23 +145,11 @@ export const HomePage = ({ ctx }) => {
           <span className="section-title">Quick Actions</span>
         </div>
         <div className="scroll-x">
-          <div
-            className="quick-action"
-            onClick={() => {
-              if (accounts.length) navigate('addExpense', accounts[0]);
-              else navigate('addAccount');
-            }}
-          >
+          <div className="quick-action" onClick={() => accounts.length ? navigate('addExpense', accounts[0]) : navigate('addAccount')}>
             <div className="qa-icon">➖</div>
             <span>Add Expense</span>
           </div>
-          <div
-            className="quick-action"
-            onClick={() => {
-              if (accounts.length) navigate('addIncome', accounts[0]);
-              else navigate('addAccount');
-            }}
-          >
+          <div className="quick-action" onClick={() => accounts.length ? navigate('addIncome', accounts[0]) : navigate('addAccount')}>
             <div className="qa-icon">➕</div>
             <span>Add Income</span>
           </div>
@@ -188,30 +177,16 @@ export const HomePage = ({ ctx }) => {
           </div>
           <div className="chart-bar-wrap">
             {weekData.map((day, index) => (
-              <div
-                key={index}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 4
-                }}
-              >
+              <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <div style={{ fontSize: 9, color: 'var(--muted)', fontWeight: 600 }}>
                   {day.amount > 0 ? formatCurrency(day.amount, currencySymbol).replace(/\.\d+/, '') : ''}
                 </div>
                 <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                  <div
-                    className="chart-bar"
-                    style={{
-                      width: '100%',
-                      height: `${Math.max(4, (day.amount / maxWeek) * 70)}px`,
-                      background: index === 6
-                        ? 'linear-gradient(180deg,var(--accent),var(--accent2))'
-                        : 'var(--card2)'
-                    }}
-                  />
+                  <div className="chart-bar" style={{
+                    width: '100%',
+                    height: `${Math.max(4, (day.amount / maxWeek) * 70)}px`,
+                    background: index === 6 ? 'linear-gradient(180deg,var(--accent),var(--accent2))' : 'var(--card2)'
+                  }} />
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--muted)' }}>{day.day}</div>
               </div>
@@ -249,8 +224,7 @@ export const HomePage = ({ ctx }) => {
           </div>
           <div className="card" style={{ padding: '12px 16px' }}>
             {categoryBreakdown.map(([categoryId, amount]) => {
-              const category = ctx.transactions.find(t => t.category === categoryId);
-              const cat = require('../utils/helpers').getCategory(categoryId);
+              const cat = getCategory(categoryId); // ✅ fixed here
               const percentage = totalSpent > 0 ? (amount / totalSpent * 100) : 0;
 
               return (
