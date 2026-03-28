@@ -69,6 +69,14 @@ export const Icon = ({ name, size = 20, color = 'currentColor' }) => {
         <path d="M3 9h18M9 21V9" />
       </svg>
     ),
+    users: (
+      <svg width={size} height={size} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <circle cx="9" cy="7" r="4" />
+        <path d="M17 11c1.66 0 3-1.79 3-4s-1.34-4-3-4" />
+        <path d="M1 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+        <path d="M17 21v-2a4 4 0 0 0-3-3.87" />
+      </svg>
+    ),
   };
 
   return icons[name] || null;

@@ -64,6 +64,28 @@ export const AccountDetailPage = ({ ctx, account }) => {
       <button className="fab" onClick={() => navigate('addExpense', acc)}>
         <Icon name="plus" size={26} color="#fff" />
       </button>
+
+      <button
+        style={{
+          width: '90%',
+          margin: '20px auto',
+          display: 'block',
+          background: '#f43f5e',
+          color: '#fff',
+          padding: '12px',
+          borderRadius: '10px',
+          border: 'none',
+          fontSize: '14px'
+        }}
+        onClick={() => {
+          if (confirm("Delete this account and all its transactions?")) {
+            ctx.deleteAccount(acc.id);
+            goBack();
+          }
+        }}
+      >
+        Delete Account
+      </button>
     </div>
   );
 };

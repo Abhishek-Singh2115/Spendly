@@ -1,3 +1,4 @@
+import { supabase } from './supabase';
 import { useState, useEffect } from 'react';
 import { BottomNav } from './components/common/BottomNav';
 import { Toast } from './components/common/Toast';
@@ -28,24 +29,55 @@ function App() {
     theme: 'dark',
     currency: 'INR'
   });
+
   const [tab, setTab] = useState('home');
   const [subPage, setSubPage] = useState(null);
   const { message: toast, showToast } = useToast();
 
-  // Theme effect
+  // ✅ Fetch transactions
   useEffect(() => {
-    document.documentElement.classList.toggle('light-mode', settings.theme === 'light');
+    const fetchTransactions = async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error(error);
+      } else {
+        setTransactions(
+          data
+            .map(txn => ({
+              ...txn,
+              date: txn.created_at || txn.date
+            }))
+            .filter(txn => txn.accountId) // ✅ IMPORTANT FIX
+        );
+      }
+    };
+
+    fetchTransactions();
+  }, []);
+
+  // ✅ Theme
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      'light-mode',
+      settings.theme === 'light'
+    );
   }, [settings.theme]);
 
-  const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol || '₹';
+  const currencySymbol =
+    CURRENCIES.find(c => c.code === settings.currency)?.symbol || '₹';
 
-  // Account Management
+  // ✅ Add Account
   const addAccount = (accountData) => {
     const newAccount = {
       ...accountData,
       id: generateId(),
       balance: parseFloat(accountData.startBalance) || 0
     };
+
     setAccounts(prev => [...prev, newAccount]);
 
     if (parseFloat(accountData.startBalance) > 0) {
@@ -55,44 +87,60 @@ function App() {
         type: 'income',
         category: 'other',
         description: 'Opening Balance',
-        date: getToday(),
-        id: generateId()
+        date: getToday()
       });
     }
+
     return newAccount;
   };
 
-  // Transaction Management
-  const addTransaction = (txn) => {
+  // ✅ Add Transaction
+  const addTransaction = async (txn) => {
     const transaction = { ...txn, id: txn.id || generateId() };
-    setTransactions(prev => [transaction, ...prev]);
 
-    if (transaction.type === 'expense') {
-      setAccounts(prev =>
-        prev.map(acc =>
-          acc.id === transaction.accountId
-            ? { ...acc, balance: acc.balance - transaction.amount }
-            : acc
-        )
-      );
-    } else if (transaction.type === 'income') {
-      setAccounts(prev =>
-        prev.map(acc =>
-          acc.id === transaction.accountId
-            ? { ...acc, balance: acc.balance + transaction.amount }
-            : acc
-        )
-      );
+    try {
+      await supabase.from('transactions').insert([
+        {
+          amount: transaction.amount,
+          type: transaction.type,
+          category: transaction.category,
+          date: transaction.date,
+          accountId: transaction.accountId || null
+        }
+      ]);
+
+      setTransactions(prev => [transaction, ...prev]);
+
+      if (transaction.type === 'expense') {
+        setAccounts(prev =>
+          prev.map(acc =>
+            acc.id === transaction.accountId
+              ? { ...acc, balance: acc.balance - transaction.amount }
+              : acc
+          )
+        );
+      } else {
+        setAccounts(prev =>
+          prev.map(acc =>
+            acc.id === transaction.accountId
+              ? { ...acc, balance: acc.balance + transaction.amount }
+              : acc
+          )
+        );
+      }
+
+    } catch (err) {
+      console.error("Insert error:", err);
     }
   };
 
+  // ✅ Delete Transaction
   const deleteTransaction = (txnId) => {
     const txn = transactions.find(t => t.id === txnId);
     if (!txn) return;
 
     setTransactions(prev => prev.filter(t => t.id !== txnId));
 
-    // Reverse the effect
     if (txn.type === 'expense') {
       setAccounts(prev =>
         prev.map(acc =>
@@ -101,7 +149,7 @@ function App() {
             : acc
         )
       );
-    } else if (txn.type === 'income') {
+    } else {
       setAccounts(prev =>
         prev.map(acc =>
           acc.id === txn.accountId
@@ -110,39 +158,59 @@ function App() {
         )
       );
     }
+
     showToast('Transaction deleted');
   };
 
-  // Split Expense Management
+  // ✅ Delete Account
+  const deleteAccount = async (accountId) => {
+    try {
+      await supabase
+        .from('transactions')
+        .delete()
+        .eq('accountId', accountId);
+
+      setAccounts(prev => prev.filter(acc => acc.id !== accountId));
+      setTransactions(prev =>
+        prev.filter(txn => txn.accountId !== accountId)
+      );
+
+      showToast('Account deleted');
+
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+  // ✅ Splits
   const addSplitExpense = (split) => {
     setSplits(prev => [split, ...prev]);
   };
 
   const updateSplitExpense = (updatedSplit) => {
-    setSplits(prev => prev.map(s => s.id === updatedSplit.id ? updatedSplit : s));
+    setSplits(prev =>
+      prev.map(s => (s.id === updatedSplit.id ? updatedSplit : s))
+    );
   };
 
   const deleteSplitExpense = (splitId) => {
     setSplits(prev => prev.filter(s => s.id !== splitId));
-    // Also delete related transaction if exists
     setTransactions(prev => prev.filter(t => t.splitId !== splitId));
   };
 
-  // Settings Management
+  // ✅ Settings
   const updateSettings = (patch) => {
     setSettings(prev => ({ ...prev, ...patch }));
   };
 
-  // Navigation
+  // ✅ Navigation
   const navigate = (page, data = null) => {
     setSubPage({ page, data });
   };
 
-  const goBack = () => {
-    setSubPage(null);
-  };
+  const goBack = () => setSubPage(null);
 
-  // Context object
+  // ✅ Context
   const ctx = {
     user,
     accounts,
@@ -153,6 +221,7 @@ function App() {
     addAccount,
     addTransaction,
     deleteTransaction,
+    deleteAccount,
     addSplitExpense,
     updateSplitExpense,
     deleteSplitExpense,
@@ -162,13 +231,18 @@ function App() {
     showToast,
     setTab
   };
-
-  // Login check
   if (!user) {
-    return <LoginPage onLogin={setUser} />;
+    return (
+      <LoginPage
+        onLogin={(u) => {
+          setUser(u);        // login user
+          setTab('home');    // ✅ go to home page
+          setSubPage(null);  // ✅ clear any old page
+        }}
+      />
+    );
   }
 
-  // Sub-page routing
   const renderSubPage = () => {
     if (!subPage) return null;
 
@@ -190,7 +264,6 @@ function App() {
     }
   };
 
-  // Main tab routing
   const renderTab = () => {
     switch (tab) {
       case 'home':
@@ -211,23 +284,18 @@ function App() {
   };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100%', 
-      position: 'relative' 
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {subPage ? (
         <div className="page fade-slide">{renderSubPage()}</div>
       ) : (
         <>
           <div className="page fade-slide">{renderTab()}</div>
-          <BottomNav 
-            active={tab} 
-            onChange={(t) => { 
-              setTab(t); 
-              setSubPage(null); 
-            }} 
+          <BottomNav
+            active={tab}
+            onChange={(t) => {
+              setTab(t);
+              setSubPage(null);
+            }}
           />
         </>
       )}

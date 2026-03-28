@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
   --bg: #0f172a;
@@ -14,12 +14,12 @@
   --text: #f1f5f9;
   --muted: #94a3b8;
   --muted2: #64748b;
-  --font-head: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-head: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
   --radius: 16px;
   --radius-sm: 10px;
   --nav-h: 72px;
-  --transition: 0.22s cubic-bezier(.4,0,.2,1);
+  --transition: 0.22s cubic-bezier(.4, 0, .2, 1);
 }
 
 .light-mode {
@@ -39,7 +39,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -183,9 +185,9 @@ body {
 }
 
 .btn-danger {
-  background: rgba(244,63,94,.15);
+  background: rgba(244, 63, 94, .15);
   color: var(--red);
-  border: 1px solid rgba(244,63,94,.3);
+  border: 1px solid rgba(244, 63, 94, .3);
 }
 
 .btn-full {
@@ -213,7 +215,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(99,102,241,.4);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, .4);
   transition: var(--transition);
   z-index: 90;
   font-size: 28px;
@@ -258,7 +260,7 @@ body {
 
 .input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
 }
 
 select.input {
@@ -269,7 +271,7 @@ select.input {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0, 0, 0, .6);
   z-index: 200;
   display: flex;
   align-items: flex-end;
@@ -281,7 +283,7 @@ select.input {
   background: var(--card);
   border-radius: 20px 20px 0 0;
   padding: 20px 18px 32px;
-  animation: slideUp .25s cubic-bezier(.4,0,.2,1);
+  animation: slideUp .25s cubic-bezier(.4, 0, .2, 1);
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -297,7 +299,7 @@ select.input {
 .modal-center {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0, 0, 0, .6);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -312,7 +314,7 @@ select.input {
   width: 100%;
   max-width: 400px;
   padding: 24px 20px;
-  animation: scaleIn .2s cubic-bezier(.4,0,.2,1);
+  animation: scaleIn .2s cubic-bezier(.4, 0, .2, 1);
 }
 
 /* Tags / Pills */
@@ -332,9 +334,9 @@ select.input {
 }
 
 .pill.active {
-  background: rgba(99,102,241,.15);
+  background: rgba(99, 102, 241, .15);
   color: var(--accent);
-  border-color: rgba(99,102,241,.4);
+  border-color: rgba(99, 102, 241, .4);
 }
 
 /* Amount display */
@@ -453,7 +455,7 @@ select.input {
 .cat-item.selected {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(99,102,241,.1);
+  background: rgba(99, 102, 241, .1);
 }
 
 .cat-item .cat-emoji {
@@ -471,7 +473,7 @@ select.input {
 .progress-fill {
   height: 100%;
   border-radius: 99px;
-  transition: width .5s cubic-bezier(.4,0,.2,1);
+  transition: width .5s cubic-bezier(.4, 0, .2, 1);
 }
 
 /* Chart bars */
@@ -485,7 +487,7 @@ select.input {
 .chart-bar {
   flex: 1;
   border-radius: 6px 6px 0 0;
-  transition: height .5s cubic-bezier(.4,0,.2,1);
+  transition: height .5s cubic-bezier(.4, 0, .2, 1);
   min-height: 4px;
 }
 
@@ -549,28 +551,54 @@ select.input {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, .08);
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0 }
-  to { opacity: 1 }
+  from {
+    opacity: 0
+  }
+
+  to {
+    opacity: 1
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(60px); opacity: 0 }
-  to { transform: translateY(0); opacity: 1 }
+  from {
+    transform: translateY(60px);
+    opacity: 0
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(.93); opacity: 0 }
-  to { transform: scale(1); opacity: 1 }
+  from {
+    transform: scale(.93);
+    opacity: 0
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1
+  }
 }
 
 @keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(14px) }
-  to { opacity: 1; transform: translateY(0) }
+  from {
+    opacity: 0;
+    transform: translateY(14px)
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
 }
 
 .fade-slide {
@@ -611,9 +639,9 @@ select.input {
 }
 
 .calc-btn.danger {
-  background: rgba(244,63,94,.12);
+  background: rgba(244, 63, 94, .12);
   color: var(--red);
-  border-color: rgba(244,63,94,.3);
+  border-color: rgba(244, 63, 94, .3);
 }
 
 /* Month tabs */
@@ -690,8 +718,15 @@ select.input {
 }
 
 @keyframes toastIn {
-  from { opacity:0; transform: translateX(-50%) translateY(10px) }
-  to { opacity:1; transform: translateX(-50%) translateY(0) }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px)
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0)
+  }
 }
 
 .icon-btn {
@@ -841,11 +876,11 @@ select.input {
   transition: var(--transition);
 }
 
-.toggle input:checked + .toggle-slider {
+.toggle input:checked+.toggle-slider {
   background: var(--accent);
 }
 
-.toggle input:checked + .toggle-slider::before {
+.toggle input:checked+.toggle-slider::before {
   transform: translateX(20px);
 }
 
@@ -869,7 +904,7 @@ select.input {
 
 .radio-option.selected {
   border-color: var(--accent);
-  background: rgba(99,102,241,.08);
+  background: rgba(99, 102, 241, .08);
 }
 
 .radio-dot {
