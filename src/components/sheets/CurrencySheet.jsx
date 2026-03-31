@@ -5,8 +5,18 @@ export const CurrencySheet = ({ isOpen, onClose, selectedCurrency, onSelect }) =
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={e => e.stopPropagation()}>
+      <div
+        className="sheet"
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: '100px'
+        }}
+      >
         <div className="sheet-handle" />
+
         <div style={{
           fontFamily: 'var(--font-head)',
           fontWeight: 700,
@@ -15,6 +25,7 @@ export const CurrencySheet = ({ isOpen, onClose, selectedCurrency, onSelect }) =
         }}>
           Select Currency
         </div>
+
         <div className="radio-group">
           {CURRENCIES.map(currency => (
             <div
@@ -35,7 +46,9 @@ export const CurrencySheet = ({ isOpen, onClose, selectedCurrency, onSelect }) =
               }}>
                 {currency.symbol}
               </span>
+
               <div className="radio-dot" />
+
               <div>
                 <div className="radio-label">{currency.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)' }}>
@@ -45,6 +58,7 @@ export const CurrencySheet = ({ isOpen, onClose, selectedCurrency, onSelect }) =
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );

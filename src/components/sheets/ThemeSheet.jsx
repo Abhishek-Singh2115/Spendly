@@ -9,8 +9,18 @@ export const ThemeSheet = ({ isOpen, onClose, selectedTheme, onSelect }) => {
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={e => e.stopPropagation()}>
+      <div
+        className="sheet"
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: '100px'
+        }}
+      >
         <div className="sheet-handle" />
+
         <div style={{
           fontFamily: 'var(--font-head)',
           fontWeight: 700,
@@ -19,6 +29,7 @@ export const ThemeSheet = ({ isOpen, onClose, selectedTheme, onSelect }) => {
         }}>
           Choose Theme
         </div>
+
         <div className="radio-group">
           {THEMES.map(theme => (
             <div
@@ -40,6 +51,7 @@ export const ThemeSheet = ({ isOpen, onClose, selectedTheme, onSelect }) => {
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );

@@ -272,20 +272,31 @@ select.input {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, .6);
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-  animation: fadeIn .18s ease;
+  z-index: 9999;
+  /* display: flex;
+  align-items: flex-end; */
+  /* animation: fadeIn .18s ease; */
 }
 
 .sheet {
+  position: absolute;
+  /* 🔥 KEY FIX */
+  bottom: 0;
+  /* stick to bottom */
+  left: 0;
+  right: 0;
+
   width: 100%;
   background: var(--card);
   border-radius: 20px 20px 0 0;
-  padding: 20px 18px 32px;
-  animation: slideUp .25s cubic-bezier(.4, 0, .2, 1);
-  max-height: 90vh;
+  padding: 20px 18px 80px;
+  /* extra bottom space */
+
+  max-height: 85vh;
+  /* slightly smaller */
   overflow-y: auto;
+
+  animation: slideUp .25s cubic-bezier(.4, 0, .2, 1);
 }
 
 .sheet-handle {

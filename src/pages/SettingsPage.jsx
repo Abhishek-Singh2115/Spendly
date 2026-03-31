@@ -54,7 +54,7 @@ export const SettingsPage = ({ ctx, onLogout }) => {
       </div>
 
       <div style={{ padding: '0 18px' }}>
-        {/* Appearance Section */}
+        {/* Appearance */}
         <div style={{
           fontSize: 11,
           color: 'var(--muted)',
@@ -81,7 +81,7 @@ export const SettingsPage = ({ ctx, onLogout }) => {
           <Icon name="arrow_left" size={16} color="var(--muted)" />
         </div>
 
-        {/* Currency Section */}
+        {/* Currency */}
         <div style={{
           fontSize: 11,
           color: 'var(--muted)',
@@ -109,7 +109,7 @@ export const SettingsPage = ({ ctx, onLogout }) => {
           <Icon name="arrow_left" size={16} color="var(--muted)" />
         </div>
 
-        {/* Account Section */}
+        {/* Account */}
         <div style={{
           fontSize: 11,
           color: 'var(--muted)',
@@ -150,18 +150,23 @@ export const SettingsPage = ({ ctx, onLogout }) => {
         </div>
       </div>
 
-      {/* Theme Sheet Modal */}
+      {/* THEME SHEET */}
       {showThemeSheet && (
         <div className="overlay" onClick={() => setShowThemeSheet(false)}>
-          <div className="sheet" onClick={e => e.stopPropagation()}>
+          <div
+            className="sheet"
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
             <div className="sheet-handle" />
-            <div style={{
-              fontFamily: 'var(--font-head)',
-              fontWeight: 700,
-              marginBottom: 16
-            }}>
+            <div style={{ fontWeight: 700, marginBottom: 16 }}>
               Choose Theme
             </div>
+
             <div className="radio-group">
               {themes.map(theme => (
                 <div
@@ -187,18 +192,23 @@ export const SettingsPage = ({ ctx, onLogout }) => {
         </div>
       )}
 
-      {/* Currency Sheet Modal */}
+      {/* CURRENCY SHEET */}
       {showCurrencySheet && (
         <div className="overlay" onClick={() => setShowCurrencySheet(false)}>
-          <div className="sheet" onClick={e => e.stopPropagation()}>
+          <div
+            className="sheet"
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
             <div className="sheet-handle" />
-            <div style={{
-              fontFamily: 'var(--font-head)',
-              fontWeight: 700,
-              marginBottom: 16
-            }}>
+            <div style={{ fontWeight: 700, marginBottom: 16 }}>
               Select Currency
             </div>
+
             <div className="radio-group">
               {CURRENCIES.map(currency => (
                 <div
@@ -211,7 +221,6 @@ export const SettingsPage = ({ ctx, onLogout }) => {
                 >
                   <span style={{
                     fontSize: 22,
-                    fontFamily: 'var(--font-head)',
                     fontWeight: 700,
                     width: 32,
                     textAlign: 'center',
