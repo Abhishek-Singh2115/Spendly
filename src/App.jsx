@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 import { useState, useEffect } from 'react';
 import { BottomNav } from './components/common/BottomNav';
@@ -9,6 +10,7 @@ import { BudgetPage } from './pages/BudgetPage';
 import { SplitsPage } from './pages/SplitsPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { TransactionsPage } from './pages/TransactionsPage';
 import { AddAccountPage } from './components/accounts/AddAccount';
 import { AccountDetailPage } from './components/accounts/AccountDetail';
 import { AddExpensePage } from './components/transactions/AddExpense';
@@ -229,7 +231,7 @@ function App() {
     navigate,
     goBack,
     showToast,
-    setTab
+    setTab,
   };
   if (!user) {
     return (
@@ -278,6 +280,8 @@ function App() {
         return <InsightsPage ctx={ctx} />;
       case 'settings':
         return <SettingsPage ctx={ctx} onLogout={() => setUser(null)} />;
+      case 'transactions':
+        return <TransactionsPage ctx={ctx} />;
       default:
         return <HomePage ctx={ctx} />;
     }

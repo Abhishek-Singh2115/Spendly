@@ -3,28 +3,28 @@ import { Icon } from '../components/common/Icon';
 import { TransactionRow } from '../components/transactions/TransactionRow';
 import { MONTHS } from '../utils/constants';
 import { formatCurrency, getGreeting, getCategory } from '../utils/helpers';
-
+ 
 export const HomePage = ({ ctx }) => {
   const { user, accounts, transactions, currencySymbol, navigate, setTab } = ctx;
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear] = useState(now.getFullYear());
-
+ 
   const monthTransactions = transactions.filter(t => {
     const d = new Date(t.date);
     return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
   });
-
+ 
   const totalSpent = monthTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
-
+ 
   const totalIncome = monthTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
-
+ 
   const recentTransactions = transactions.slice(0, 5);
-
+ 
   // Weekly data (last 7 days)
   const weekData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -38,9 +38,9 @@ export const HomePage = ({ ctx }) => {
       amount
     };
   });
-
+ 
   const maxWeek = Math.max(...weekData.map(d => d.amount), 1);
-
+ 
   // Category breakdown
   const categoryMap = {};
   monthTransactions
@@ -48,13 +48,13 @@ export const HomePage = ({ ctx }) => {
     .forEach(t => {
       categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
     });
-
+ 
   const categoryBreakdown = Object.entries(categoryMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3);
-
+ 
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
-
+ 
   return (
     <div>
       {/* Top Section */}
@@ -85,7 +85,7 @@ export const HomePage = ({ ctx }) => {
             </div>
           </div>
         </div>
-
+ 
         {/* Month Selector */}
         <div className="month-tabs" style={{ marginBottom: 16 }}>
           {MONTHS.map((month, index) => (
@@ -99,7 +99,7 @@ export const HomePage = ({ ctx }) => {
           ))}
         </div>
       </div>
-
+ 
       {/* Big Spend Card */}
       <div style={{ padding: '0 18px 16px' }}>
         <div className="card" style={{
@@ -138,7 +138,7 @@ export const HomePage = ({ ctx }) => {
           </div>
         </div>
       </div>
-
+ 
       {/* Quick Actions */}
       <div style={{ padding: '0 18px 16px' }}>
         <div className="section-head">
@@ -146,7 +146,7 @@ export const HomePage = ({ ctx }) => {
         </div>
         <div className="scroll-x">
           <div className="quick-action" onClick={() => accounts.length ? navigate('addExpense', accounts[0]) : navigate('addAccount')}>
-            <div className="qa-icon">➖</div>
+            <div className="qa-icon">💸</div>
             <span>Add Expense</span>
           </div>
           <div className="quick-action" onClick={() => accounts.length ? navigate('addIncome', accounts[0]) : navigate('addAccount')}>
@@ -167,7 +167,7 @@ export const HomePage = ({ ctx }) => {
           </div>
         </div>
       </div>
-
+ 
       {/* Weekly Chart */}
       <div style={{ padding: '0 18px 16px' }}>
         <div className="card">
@@ -175,33 +175,74 @@ export const HomePage = ({ ctx }) => {
             <span className="section-title">This Week</span>
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>Daily spending</span>
           </div>
-          <div className="chart-bar-wrap">
-            {weekData.map((day, index) => (
-              <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div style={{ fontSize: 9, color: 'var(--muted)', fontWeight: 600 }}>
-                  {day.amount > 0 ? formatCurrency(day.amount, currencySymbol).replace(/\.\d+/, '') : ''}
-                </div>
-                <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                  <div className="chart-bar" style={{
-                    width: '100%',
-                    height: `${Math.max(4, (day.amount / maxWeek) * 70)}px`,
-                    background: index === 6 ? 'linear-gradient(180deg,var(--accent),var(--accent2))' : 'var(--card2)'
+          <div className="chart-bar-wrap" style={{ alignItems: 'flex-end', height: 90 }}>
+            {weekData.map((day, index) => {
+              const isToday = index === 6;
+              const barHeight = Math.max(6, (day.amount / maxWeek) * 70);
+              return (
+                <div key={index} style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 4
+                }}>
+                  {/* Amount label above bar */}
+                  <div style={{
+                    fontSize: 9,
+                    color: isToday ? 'var(--accent)' : 'var(--muted)',
+                    fontWeight: 600,
+                    minHeight: 12,
+                    textAlign: 'center'
+                  }}>
+                    {day.amount > 0
+                      ? formatCurrency(day.amount, currencySymbol).replace(/\.\d+/, '')
+                      : ''}
+                  </div>
+ 
+                  {/* Bar */}
+                  <div style={{
+                    width: '60%',
+                    height: `${barHeight}px`,
+                    borderRadius: '4px 4px 2px 2px',
+                    background: isToday
+                      ? 'linear-gradient(180deg, var(--accent), var(--accent2))'
+                      : day.amount > 0
+                        ? 'rgba(99,102,241,0.25)'
+                        : 'var(--card2)',
+                    boxShadow: isToday ? '0 2px 8px rgba(99,102,241,0.35)' : 'none',
+                    transition: 'height 0.3s ease'
                   }} />
+ 
+                  {/* Day label */}
+                  <div style={{
+                    fontSize: 10,
+                    color: isToday ? 'var(--accent)' : 'var(--muted)',
+                    fontWeight: isToday ? 700 : 400
+                  }}>
+                    {day.day}
+                  </div>
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--muted)' }}>{day.day}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
-
-      {/* Recent Transactions */}
+ 
+      {/* Recent Transactions — fixed height, scrollable */}
       <div style={{ padding: '0 18px 16px' }}>
         <div className="section-head">
           <span className="section-title">Recent Transactions</span>
-          <span className="see-all" onClick={() => setTab('accounts')}>See all</span>
+          <span className="see-all" onClick={() => ctx.setTab('transactions')}>See all</span>
         </div>
-        <div className="card" style={{ padding: '4px 16px' }}>
+        <div className="card" style={{
+          padding: '4px 16px',
+          maxHeight: 260,
+          overflowY: 'auto',
+          /* hide scrollbar on webkit but keep scrollability */
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(99,102,241,0.3) transparent'
+        }}>
           {recentTransactions.length === 0 ? (
             <div className="empty">
               <div className="empty-icon">💸</div>
@@ -214,19 +255,25 @@ export const HomePage = ({ ctx }) => {
           )}
         </div>
       </div>
-
-      {/* Category Breakdown */}
+ 
+      {/* Top Categories — fixed height, scrollable */}
       {categoryBreakdown.length > 0 && (
         <div style={{ padding: '0 18px 16px' }}>
           <div className="section-head">
             <span className="section-title">Top Categories</span>
             <span className="see-all" onClick={() => setTab('budget')}>Details</span>
           </div>
-          <div className="card" style={{ padding: '12px 16px' }}>
+          <div className="card" style={{
+            padding: '12px 16px',
+            maxHeight: 220,
+            overflowY: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(99,102,241,0.3) transparent'
+          }}>
             {categoryBreakdown.map(([categoryId, amount]) => {
-              const cat = getCategory(categoryId); // ✅ fixed here
+              const cat = getCategory(categoryId);
               const percentage = totalSpent > 0 ? (amount / totalSpent * 100) : 0;
-
+ 
               return (
                 <div key={categoryId} style={{ marginBottom: 12 }}>
                   <div style={{

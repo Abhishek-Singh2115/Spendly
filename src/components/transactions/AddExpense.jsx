@@ -43,7 +43,8 @@ export const AddExpensePage = ({ ctx, account }) => {
       date
     });
     showToast('Expense added!');
-    navigate('accountDetail', acc);
+    ctx.setTab('home');
+    goBack();
   };
 
   const categoryObj = getCategory(category);

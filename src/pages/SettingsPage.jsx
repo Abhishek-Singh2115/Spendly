@@ -44,7 +44,7 @@ export const SettingsPage = ({ ctx, onLogout }) => {
             color: '#fff',
             fontWeight: 700
           }}>
-            {user.name[0].toUpperCase()}
+            {user?.email?.[0]?.toUpperCase() || 'U'}
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 16 }}>{user.name}</div>
