@@ -10,19 +10,26 @@ export const AddAccountPage = ({ ctx }) => {
     startBalance: '',
     currency: settings.currency
   });
+  const [loading, setLoading] = useState(false);
 
   const updateForm = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = () => {
-    if (!form.name) {
+  // ✅ FIXED: handleSubmit is now async and properly awaits addAccount
+  // Previously: const acc = addAccount(form)  ← returned a Promise, not the account!
+  // Now:        const acc = await addAccount(form) ← waits for the real account object
+  const handleSubmit = async () => {
+    if (!form.name.trim()) {
       showToast('Please enter account name');
       return;
     }
-    const acc = addAccount(form);
+    setLoading(true);
+    const acc = await addAccount(form);   // ← await is the critical fix
+    setLoading(false);
+    if (!acc) return;                     // addAccount returns null on error
     showToast('Account created!');
-    navigate('accountDetail', acc);
+    navigate('accountDetail', acc);       // now acc is the real account object
   };
 
   return (
@@ -77,8 +84,13 @@ export const AddAccountPage = ({ ctx }) => {
         </select>
       </div>
 
-      <button className="btn btn-primary btn-full" style={{ marginTop: 8 }} onClick={handleSubmit}>
-        Create Account
+      <button
+        className="btn btn-primary btn-full"
+        style={{ marginTop: 8, opacity: loading ? 0.7 : 1 }}
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? 'Creating…' : 'Create Account'}
       </button>
     </div>
   );
