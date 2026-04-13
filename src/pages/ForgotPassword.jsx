@@ -5,6 +5,7 @@ export default function ForgotPassword() {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     const handleReset = async () => {
         if (!email) {
@@ -26,7 +27,8 @@ export default function ForgotPassword() {
         }
 
         // 👉 SPLITWISE FLOW: go to success page
-        window.location.href = "/reset-sent";
+        setSuccess("Reset link sent! Check your email.");
+        setLoading(false);
     };
 
     const S = {
@@ -132,8 +134,25 @@ export default function ForgotPassword() {
                     />
 
                     {error && <div style={S.err}>{error}</div>}
+                    {success && (
+                        <div style={{
+                            marginTop: 10,
+                            padding: "10px",
+                            borderRadius: 8,
+                            background: "rgba(34,197,94,0.1)",
+                            color: "#22c55e",
+                            textAlign: "center",
+                            fontSize: 13
+                        }}>
+                            {success}
+                        </div>
+                    )}
 
-                    <button style={S.btn} onClick={handleReset}>
+                    <button
+                        style={S.btn}
+                        onClick={handleReset}s
+                        disabled={loading || success}
+                    >
                         {loading ? "Sending..." : "Send Reset Link"}
                     </button>
 
