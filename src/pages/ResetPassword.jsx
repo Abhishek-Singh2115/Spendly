@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -8,14 +9,31 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // ✅ Check if user came from email link
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // ✅ Handle reset link session
   useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash.includes("access_token")) {
-      setError("Invalid or expired reset link");
-    }
+    const handleSession = async () => {
+      const { data, error } =
+        await supabase.auth.exchangeCodeForSession(
+          window.location.href
+        );
+
+      if (error) {
+        setError("Invalid or expired reset link");
+        return;
+      }
+
+      if (!data.session) {
+        setError("Session expired. Please try again.");
+      }
+    };
+
+    handleSession();
   }, []);
 
+  // ✅ Update password
   const handleUpdate = async () => {
     if (!password || !confirm) {
       setError("Please fill all fields");
@@ -84,14 +102,28 @@ export default function ResetPassword() {
       marginBottom: 6,
       display: "block",
     },
+    inputWrap: {
+      position: "relative",
+    },
     input: {
       width: "100%",
       padding: "11px 14px",
       borderRadius: 11,
       border: "1px solid var(--border)",
-      background: "var(--bg)",
+      background: "#111",
       fontSize: 15,
       marginBottom: 12,
+      color: "#fff",
+    },
+    eye: {
+      position: "absolute",
+      right: 12,
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      color: "#aaa",
+      display: "flex",
+      alignItems: "center",
     },
     btn: {
       width: "100%",
@@ -105,12 +137,9 @@ export default function ResetPassword() {
       opacity: loading ? 0.7 : 1,
     },
     err: {
-      color: "var(--red)",
+      color: "#f43f5e",
       fontSize: 13,
       marginBottom: 10,
-      textAlign: "center",
-    },
-    success: {
       textAlign: "center",
     },
   };
@@ -153,30 +182,50 @@ export default function ResetPassword() {
           <h3 style={{ textAlign: "center" }}>Set new password</h3>
 
           <label style={S.label}>New Password</label>
-          <input
-            style={S.input}
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setError("");
-            }}
-          />
+          <div style={S.inputWrap}>
+            <input
+              style={{ ...S.input, paddingRight: 35 }}
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+            />
+            <span
+              style={S.eye}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </span>
+          </div>
 
           <label style={S.label}>Confirm Password</label>
-          <input
-            style={S.input}
-            type="password"
-            value={confirm}
-            onChange={(e) => {
-              setConfirm(e.target.value);
-              setError("");
-            }}
-          />
+          <div style={S.inputWrap}>
+            <input
+              style={{ ...S.input, paddingRight: 35 }}
+              type={showConfirm ? "text" : "password"}
+              value={confirm}
+              onChange={(e) => {
+                setConfirm(e.target.value);
+                setError("");
+              }}
+            />
+            <span
+              style={S.eye}
+              onClick={() => setShowConfirm(!showConfirm)}
+            >
+              {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+            </span>
+          </div>
 
           {error && <div style={S.err}>{error}</div>}
 
-          <button style={S.btn} onClick={handleUpdate}>
+          <button
+            style={S.btn}
+            onClick={handleUpdate}
+            disabled={loading || success}
+          >
             {loading ? "Updating..." : "Update Password"}
           </button>
         </div>
