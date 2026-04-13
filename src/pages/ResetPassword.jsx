@@ -8,29 +8,42 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   // ✅ Handle reset link session
   useEffect(() => {
-    const handleSession = async () => {
-      const { data, error } =
-        await supabase.auth.exchangeCodeForSession(
-          window.location.href
-        );
+    const hash = window.location.hash;
+
+    if (!hash.includes("access_token")) {
+      setError("Invalid or expired reset link");
+      return;
+    }
+
+    const params = new URLSearchParams(hash.substring(1));
+
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+    if (!access_token || !refresh_token) {
+      setError("Session expired. Please try again.");
+      return;
+    }
+
+    (async () => {
+      const { error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
 
       if (error) {
-        setError("Invalid or expired reset link");
-        return;
+        setError("Failed to restore session");
+      } else {
+        setSessionReady(true); // ✅ VERY IMPORTANT
       }
-
-      if (!data.session) {
-        setError("Session expired. Please try again.");
-      }
-    };
-
-    handleSession();
+    })();
   }, []);
 
   // ✅ Update password
@@ -224,7 +237,7 @@ export default function ResetPassword() {
           <button
             style={S.btn}
             onClick={handleUpdate}
-            disabled={loading || success}
+            disabled={loading || success || !sessionReady}
           >
             {loading ? "Updating..." : "Update Password"}
           </button>
