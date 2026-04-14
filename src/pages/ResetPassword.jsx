@@ -27,21 +27,29 @@ export default function ResetPassword() {
     const access_token = params.get("access_token");
     const refresh_token = params.get("refresh_token");
 
-    if (!access_token || !refresh_token) {
-      setError("Session expired. Please try again.");
+    if (!access_token) {
+      setError("Invalid or expired reset link");
       return;
     }
 
     (async () => {
-      const { error } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-      });
+      let result;
 
-      if (error) {
+      if (refresh_token) {
+        result = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+      } else {
+        result = await supabase.auth.setSession({
+          access_token,
+        });
+      }
+
+      if (result.error) {
         setError("Failed to restore session");
       } else {
-        setSessionReady(true); // ✅ VERY IMPORTANT
+        setSessionReady(true);
       }
     })();
   }, []);
@@ -233,6 +241,12 @@ export default function ResetPassword() {
           </div>
 
           {error && <div style={S.err}>{error}</div>}
+
+          {!sessionReady && !error && (
+            <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", marginBottom: 10 }}>
+              Preparing secure session...
+            </div>
+          )}
 
           <button
             style={S.btn}
