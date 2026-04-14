@@ -67,12 +67,28 @@ function App() {
   const [settings, setSettings] = useLocalStorage('sp_settings', { theme: 'dark', currency: 'INR' });
 
   const [tab, setTab] = useState('home');
-  const [subPage, setSubPage] = useState(null);
+  const [pageStack, setPageStack] = useState([]);
+  const currentPage = pageStack[pageStack.length - 1] || null;
   const { message: toast, showToast } = useToast();
 
   useEffect(() => {
     document.documentElement.classList.toggle('light-mode', settings.theme === 'light');
   }, [settings.theme]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPageStack((prev) => {
+        if (prev.length > 0) {
+          return prev.slice(0, -1);
+        }
+        return []; // ✅ IMPORTANT FIX
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // ── Load ALL user data from Supabase ─────────────────────
   const loadUserData = useCallback(async (userId) => {
@@ -115,7 +131,7 @@ function App() {
         setTransactions([]);
         setSplits([]);
         setTab('home');
-        setSubPage(null);
+        setPageStack([]);
       }
     });
 
@@ -127,7 +143,7 @@ function App() {
   useEffect(() => {
     const handler = () => {
       console.log("OPEN FORGOT PAGE");
-      setSubPage({ page: "forgotPassword" });
+      setPageStack([{ page: "forgotPassword" }]);
     };
 
     window.addEventListener("open-forgot-password", handler);
@@ -140,7 +156,7 @@ function App() {
   useEffect(() => {
     const handler = () => {
       console.log("CLOSE FORGOT PAGE");
-      setSubPage(null);
+      setPageStack([]);
     };
 
     window.addEventListener("close-forgot-password", handler);
@@ -285,8 +301,17 @@ function App() {
   const updateSettings = (patch) => setSettings(prev => ({ ...prev, ...patch }));
 
   // ── Navigation ────────────────────────────────────────────
-  const navigate = (page, data = null) => setSubPage({ page, data });
-  const goBack = () => setSubPage(null);
+  const navigate = (page, data = null) => {
+    const newPage = { page, data };
+
+    setPageStack((prev) => [...prev, newPage]);
+
+    // push to browser history (IMPORTANT)
+    window.history.pushState(newPage, "", `#${page}`);
+  };
+  const goBack = () => {
+    window.history.back(); // triggers popstate
+  };
   const handleLogout = async () => await supabase.auth.signOut();
 
   // ── Context ───────────────────────────────────────────────
@@ -296,31 +321,31 @@ function App() {
     addSplitExpense, updateSplitExpense, deleteSplitExpense,
     updateSettings, navigate, goBack, showToast, setTab,
   };
-// ✅ Loading first
-if (!authReady) return <LoadingScreen />;
+  // ✅ Loading first
+  if (!authReady) return <LoadingScreen />;
 
-// ✅ 1. Forgot Password (VERY IMPORTANT)
-if (subPage?.page === "forgotPassword") {
-  return <ForgotPassword />;
-}
+  // ✅ 1. Forgot Password (VERY IMPORTANT)
+  if (currentPage?.page === "forgotPassword") {
+    return <ForgotPassword />;
+  }
 
-// ✅ 2. Reset Password (email link)
-if (window.location.pathname === "/reset-password") {
-  return <ResetPassword />;
-}
+  // ✅ 2. Reset Password (email link)
+  if (window.location.pathname === "/reset-password") {
+    return <ResetPassword />;
+  }
 
-// ✅ 3. Normal auth
-if (!session) return <LoginPage />;
+  // ✅ 3. Normal auth
+  if (!session) return <LoginPage />;
 
   const renderSubPage = () => {
-    if (!subPage) return null;
-    switch (subPage.page) {
+    if (!currentPage) return null;
+    switch (currentPage.page) {
       case 'addAccount': return <AddAccountPage ctx={ctx} />;
-      case 'accountDetail': return <AccountDetailPage ctx={ctx} account={subPage.data} />;
-      case 'addExpense': return <AddExpensePage ctx={ctx} account={subPage.data} />;
-      case 'addIncome': return <AddIncomePage ctx={ctx} account={subPage.data} />;
-      case 'splitExpense': return <SplitExpensePage ctx={ctx} account={subPage.data} />;
-      case 'splitDetail': return <SplitDetailPage ctx={ctx} split={subPage.data} />;
+      case 'accountDetail': return <AccountDetailPage ctx={ctx} account={currentPage.data} />;
+      case 'addExpense': return <AddExpensePage ctx={ctx} account={currentPage.data} />;
+      case 'addIncome': return <AddIncomePage ctx={ctx} account={currentPage.data} />;
+      case 'splitExpense': return <SplitExpensePage ctx={ctx} account={currentPage.data} />;
+      case 'splitDetail': return <SplitDetailPage ctx={ctx} split={currentPage.data} />;
       case 'forgotPassword':
         return <ForgotPassword />;
       default: return null;
@@ -342,12 +367,18 @@ if (!session) return <LoginPage />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {subPage ? (
+      {currentPage ? (
         <div className="page fade-slide">{renderSubPage()}</div>
       ) : (
         <>
           <div className="page fade-slide">{renderTab()}</div>
-          <BottomNav active={tab} onChange={t => { setTab(t); setSubPage(null); }} />
+          <BottomNav
+            active={tab}
+            onChange={t => {
+              setTab(t);
+              setPageStack([]); // ✅ reset navigation stack
+            }}
+          />
         </>
       )}
       <Toast message={toast} />
