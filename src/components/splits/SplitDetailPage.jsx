@@ -7,7 +7,7 @@ import { formatCurrency, getCategory } from '../../utils/helpers';
 export const SplitDetailPage = ({ ctx, split }) => {
   const { currencySymbol, goBack, showToast, updateSplitExpense } = ctx;
   const [localSplit, setLocalSplit] = useState(split);
-  
+
   const categoryObj = getCategory(localSplit.category);
   const me = localSplit.participants.find(p => p.id === 'me');
   const others = localSplit.participants.filter(p => p.id !== 'me');
@@ -17,7 +17,7 @@ export const SplitDetailPage = ({ ctx, split }) => {
     const newSettledWith = isSettled
       ? localSplit.settledWith.filter(id => id !== participantId)
       : [...localSplit.settledWith, participantId];
-    
+
     const updatedSplit = { ...localSplit, settledWith: newSettledWith };
     setLocalSplit(updatedSplit);
     updateSplitExpense(updatedSplit);
@@ -35,11 +35,22 @@ export const SplitDetailPage = ({ ctx, split }) => {
 
   return (
     <div style={{ padding: 18 }}>
-      <BackButton onClick={goBack} label="Back to Splits" />
-      
+      <BackButton
+        onClick={() => {
+          if (localSplit?.source === 'home') {
+            ctx.setPageStack([]);
+            ctx.setTab('home');   // ✅ go back to Home
+          } else {
+            ctx.setPageStack([]);
+            ctx.setTab('groups'); // ✅ go back to Splits
+          }
+        }}
+        label="Back"
+      />
+
       <div className="card" style={{
-        background: allSettled 
-          ? 'linear-gradient(135deg, #10b981, #059669)' 
+        background: allSettled
+          ? 'linear-gradient(135deg, #10b981, #059669)'
           : 'linear-gradient(135deg, var(--accent), var(--accent2))',
         borderColor: 'transparent',
         marginBottom: 20
@@ -88,7 +99,7 @@ export const SplitDetailPage = ({ ctx, split }) => {
 
       {/* Amount to Receive */}
       {!allSettled && totalOwed > 0 && (
-        <div className="card" style={{ 
+        <div className="card" style={{
           marginBottom: 16,
           background: 'rgba(16,185,129,.1)',
           borderColor: 'rgba(16,185,129,.3)'
@@ -138,11 +149,11 @@ export const SplitDetailPage = ({ ctx, split }) => {
                   width: 40,
                   height: 40,
                   borderRadius: '50%',
-                  background: isMe 
+                  background: isMe
                     ? 'linear-gradient(135deg, var(--accent), var(--accent2))'
                     : isSettled
-                    ? 'var(--green)'
-                    : 'var(--card2)',
+                      ? 'var(--green)'
+                      : 'var(--card2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -152,7 +163,7 @@ export const SplitDetailPage = ({ ctx, split }) => {
                 }}>
                   {isSettled ? '✓' : participant.name[0].toUpperCase()}
                 </div>
-                
+
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>
                     {participant.name} {isMe && '(You)'}
@@ -218,7 +229,14 @@ export const SplitDetailPage = ({ ctx, split }) => {
             if (confirm('Delete this split expense?')) {
               ctx.deleteSplitExpense(localSplit.id);
               showToast('Split expense deleted');
-              goBack();
+
+              ctx.setPageStack([]);
+
+              if (localSplit?.source === 'home') {
+                ctx.setTab('home');
+              } else {
+                ctx.setTab('groups');
+              }
             }
           }}
         >

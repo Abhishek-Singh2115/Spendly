@@ -14,6 +14,7 @@ export const SplitExpensePage = ({ ctx, account }) => {
   const { accounts, addTransaction, navigate, goBack, showToast, currencySymbol, user } = ctx;
   const acc = accounts.find(a => a.id === account?.id) || accounts[0];
   
+
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('food');
   const [description, setDescription] = useState('');
@@ -22,7 +23,7 @@ export const SplitExpensePage = ({ ctx, account }) => {
   const [participants, setParticipants] = useState([
     { id: 'me', name: user.name, email: user.email, amount: 0, percentage: 0, shares: 1 }
   ]);
-  
+
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [showAddFriendSheet, setShowAddFriendSheet] = useState(false);
   const [showSplitMethodSheet, setShowSplitMethodSheet] = useState(false);
@@ -56,47 +57,47 @@ export const SplitExpensePage = ({ ctx, account }) => {
   };
 
   const updateParticipantAmount = (id, value) => {
-    setParticipants(prev => prev.map(p => 
+    setParticipants(prev => prev.map(p =>
       p.id === id ? { ...p, amount: parseFloat(value) || 0 } : p
     ));
   };
 
   const updateParticipantPercentage = (id, value) => {
-    setParticipants(prev => prev.map(p => 
+    setParticipants(prev => prev.map(p =>
       p.id === id ? { ...p, percentage: parseFloat(value) || 0 } : p
     ));
   };
 
   const updateParticipantShares = (id, value) => {
-    setParticipants(prev => prev.map(p => 
+    setParticipants(prev => prev.map(p =>
       p.id === id ? { ...p, shares: parseInt(value) || 1 } : p
     ));
   };
 
   const calculateSplits = () => {
     const totalAmount = parseFloat(amount) || 0;
-    
+
     switch (splitMethod) {
       case 'equal':
         const equalShare = totalAmount / participants.length;
         return participants.map(p => ({ ...p, amount: equalShare }));
-      
+
       case 'exact':
         return participants;
-      
+
       case 'percentage':
         return participants.map(p => ({
           ...p,
           amount: (totalAmount * p.percentage) / 100
         }));
-      
+
       case 'shares':
         const totalShares = participants.reduce((sum, p) => sum + p.shares, 0);
         return participants.map(p => ({
           ...p,
           amount: (totalAmount * p.shares) / totalShares
         }));
-      
+
       default:
         return participants;
     }
@@ -113,7 +114,7 @@ export const SplitExpensePage = ({ ctx, account }) => {
       showToast('Enter a valid amount');
       return;
     }
-    
+
     if (!isValidSplit && splitMethod === 'exact') {
       showToast('Split amounts must equal total');
       return;
@@ -161,9 +162,21 @@ export const SplitExpensePage = ({ ctx, account }) => {
 
     // Store split data
     ctx.addSplitExpense(splitData);
-    
+
     showToast('Split expense created!');
-    navigate('splitDetail', splitData);
+    ctx.setPageStack(prev => {
+      const newStack = prev.slice(0, -1);
+      return [
+        ...newStack,
+        {
+          page: 'splitDetail',
+          data: {
+            ...splitData,
+            source: account?.source // ⭐ THIS IS THE KEY FIX
+          }
+        }
+      ];
+    });
   };
 
   const categoryObj = getCategory(category);
@@ -171,13 +184,23 @@ export const SplitExpensePage = ({ ctx, account }) => {
 
   return (
     <div style={{ padding: 18, height: '100%', overflowY: 'auto', paddingBottom: 100 }}>
-      <BackButton onClick={goBack} />
-      
-      <div style={{ 
-        fontFamily: 'var(--font-head)', 
-        fontSize: 20, 
-        fontWeight: 700, 
-        marginBottom: 4 
+      <BackButton
+        onClick={() => {
+          if (account?.source === 'home') {
+            ctx.setPageStack([]);
+            ctx.setTab('home'); // ✅ go back to home
+          } else {
+            ctx.setPageStack([]);
+            ctx.setTab('groups'); // ✅ keep your working splits flow
+          }
+        }}
+      />
+
+      <div style={{
+        fontFamily: 'var(--font-head)',
+        fontSize: 20,
+        fontWeight: 700,
+        marginBottom: 4
       }}>
         Split Expense
       </div>
@@ -267,10 +290,10 @@ export const SplitExpensePage = ({ ctx, account }) => {
           alignItems: 'center'
         }}>
           <span>Participants ({participants.length})</span>
-          <button 
+          <button
             className="btn btn-sm"
-            style={{ 
-              background: 'rgba(99,102,241,.15)', 
+            style={{
+              background: 'rgba(99,102,241,.15)',
               color: 'var(--accent)',
               border: '1px solid rgba(99,102,241,.3)',
               padding: '4px 10px',
@@ -297,7 +320,7 @@ export const SplitExpensePage = ({ ctx, account }) => {
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  background: participant.id === 'me' 
+                  background: participant.id === 'me'
                     ? 'linear-gradient(135deg, var(--accent), var(--accent2))'
                     : 'var(--card2)',
                   display: 'flex',
@@ -309,7 +332,7 @@ export const SplitExpensePage = ({ ctx, account }) => {
                 }}>
                   {participant.name[0].toUpperCase()}
                 </div>
-                
+
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>
                     {participant.name} {participant.id === 'me' && '(You)'}
@@ -321,9 +344,9 @@ export const SplitExpensePage = ({ ctx, account }) => {
                       placeholder="0.00"
                       value={participant.amount || ''}
                       onChange={e => updateParticipantAmount(participant.id, e.target.value)}
-                      style={{ 
-                        marginTop: 4, 
-                        padding: '6px 8px', 
+                      style={{
+                        marginTop: 4,
+                        padding: '6px 8px',
                         fontSize: 12,
                         width: '100%'
                       }}
@@ -336,9 +359,9 @@ export const SplitExpensePage = ({ ctx, account }) => {
                       placeholder="0"
                       value={participant.percentage || ''}
                       onChange={e => updateParticipantPercentage(participant.id, e.target.value)}
-                      style={{ 
-                        marginTop: 4, 
-                        padding: '6px 8px', 
+                      style={{
+                        marginTop: 4,
+                        padding: '6px 8px',
                         fontSize: 12,
                         width: '100%'
                       }}
@@ -352,9 +375,9 @@ export const SplitExpensePage = ({ ctx, account }) => {
                       min="1"
                       value={participant.shares || 1}
                       onChange={e => updateParticipantShares(participant.id, e.target.value)}
-                      style={{ 
-                        marginTop: 4, 
-                        padding: '6px 8px', 
+                      style={{
+                        marginTop: 4,
+                        padding: '6px 8px',
                         fontSize: 12,
                         width: '100%'
                       }}
@@ -398,9 +421,9 @@ export const SplitExpensePage = ({ ctx, account }) => {
         </div>
 
         {!isValidSplit && splitMethod === 'exact' && (
-          <div style={{ 
-            color: 'var(--red)', 
-            fontSize: 12, 
+          <div style={{
+            color: 'var(--red)',
+            fontSize: 12,
             marginTop: 6,
             textAlign: 'center'
           }}>

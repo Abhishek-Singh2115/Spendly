@@ -75,20 +75,7 @@ function App() {
     document.documentElement.classList.toggle('light-mode', settings.theme === 'light');
   }, [settings.theme]);
 
-  useEffect(() => {
-    const handlePopState = () => {
-      setPageStack((prev) => {
-        if (prev.length > 0) {
-          return prev.slice(0, -1);
-        }
-        return []; // ✅ IMPORTANT FIX
-      });
-    };
 
-    window.addEventListener("popstate", handlePopState);
-
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
 
   // ── Load ALL user data from Supabase ─────────────────────
   const loadUserData = useCallback(async (userId) => {
@@ -162,6 +149,21 @@ function App() {
     window.addEventListener("close-forgot-password", handler);
 
     return () => window.removeEventListener("close-forgot-password", handler);
+  }, []);
+
+  useEffect(() => {
+    const handleBack = () => {
+      setPageStack(prev => {
+        if (prev.length > 0) {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('popstate', handleBack);
+
+    return () => window.removeEventListener('popstate', handleBack);
   }, []);
 
   // ── USER + CURRENCY (IMPORTANT) ──────────────────────────
@@ -303,14 +305,14 @@ function App() {
   // ── Navigation ────────────────────────────────────────────
   const navigate = (page, data = null) => {
     const newPage = { page, data };
-
     setPageStack((prev) => [...prev, newPage]);
 
-    // push to browser history (IMPORTANT)
-    window.history.pushState(newPage, "", `#${page}`);
+    // ✅ ADD THIS (safe)
+    window.history.pushState({ page }, '');
   };
+
   const goBack = () => {
-    window.history.back(); // triggers popstate
+    window.history.back();
   };
   const handleLogout = async () => await supabase.auth.signOut();
 
@@ -319,7 +321,7 @@ function App() {
     user, accounts, transactions, splits, settings, currencySymbol,
     addAccount, addTransaction, deleteTransaction, deleteAccount,
     addSplitExpense, updateSplitExpense, deleteSplitExpense,
-    updateSettings, navigate, goBack, showToast, setTab,
+    updateSettings, navigate, goBack, showToast, setTab, setPageStack,
   };
   // ✅ Loading first
   if (!authReady) return <LoadingScreen />;

@@ -65,7 +65,10 @@ export const SplitsPage = ({ ctx }) => {
                 ctx.showToast('Add an account first');
                 ctx.setTab('accounts');
               } else {
-                navigate('splitExpense', accounts[0]);
+                navigate('splitExpense', {
+                  account: accounts[0],
+                  source: 'splits'
+                });
               }
             }}
           >

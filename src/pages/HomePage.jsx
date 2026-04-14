@@ -8,6 +8,7 @@ export const HomePage = ({ ctx }) => {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear] = useState(now.getFullYear());
+  
 
   // All transactions for selected month
   const monthTxns = transactions.filter(t => {
@@ -96,7 +97,20 @@ export const HomePage = ({ ctx }) => {
           <div className="quick-action" onClick={() => accounts.length ? navigate('addIncome', accounts[0]) : navigate('addAccount')}>
             <div className="qa-icon">➕</div><span>Add Income</span>
           </div>
-          <div className="quick-action" onClick={() => setTab('splits')}>
+          <div
+            className="quick-action"
+            onClick={() => {
+              if (ctx.accounts.length === 0) {
+                ctx.showToast('Add an account first');
+                ctx.setTab('accounts');
+              } else {
+                ctx.navigate('splitExpense', {
+                  account: ctx.accounts[0],
+                  source: 'home'
+                });
+              }
+            }}
+          >
             <div className="qa-icon">👥</div>
             <span>Split</span>
           </div>
