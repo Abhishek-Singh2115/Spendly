@@ -20,7 +20,7 @@ export const AccountsPage = ({ ctx }) => {
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>All Accounts</div>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => navigate('addAccount')}>
-            <Icon name="plus" size={14} /> Add
+            <Icon name="plus" size={14} /> Add Account
           </button>
         </div>
 
@@ -43,7 +43,7 @@ export const AccountsPage = ({ ctx }) => {
         </div>
       </div>
 
-      <div style={{ padding: '0 18px' }}>
+      <div style={{ padding: '0 18px 24px' }}>
         {accounts.length === 0 ? (
           <div className="empty">
             <div className="empty-icon">🏦</div>
@@ -100,10 +100,7 @@ export const AccountsPage = ({ ctx }) => {
           })
         )}
       </div>
-
-      <button className="fab" onClick={() => navigate('addAccount')}>
-        <Icon name="plus" size={26} color="#fff" />
-      </button>
+      
     </div>
   );
 };

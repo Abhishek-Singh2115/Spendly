@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Icon } from '../components/common/Icon';
-import { FAB } from '../components/common/FAB';
+// import { Icon } from '../components/common/Icon';
+// import { FAB } from '../components/common/FAB';
 import { SplitsList } from '../components/splits/SplitsList';
 import { formatCurrency } from '../utils/helpers';
+import { Icon } from '../components/common/Icon';
 
 export const SplitsPage = ({ ctx }) => {
   const { splits, currencySymbol, navigate, accounts } = ctx;
@@ -41,11 +42,13 @@ export const SplitsPage = ({ ctx }) => {
           justifyContent: 'space-between',
           marginBottom: 16
         }}>
+
+          {/* LEFT */}
           <div>
-            <div style={{ 
-              fontFamily: 'var(--font-head)', 
-              fontSize: 22, 
-              fontWeight: 700 
+            <div style={{
+              fontFamily: 'var(--font-head)',
+              fontSize: 22,
+              fontWeight: 700
             }}>
               Split Expenses
             </div>
@@ -53,14 +56,30 @@ export const SplitsPage = ({ ctx }) => {
               Share bills with friends
             </div>
           </div>
+
+          {/* RIGHT BUTTON */}
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              if (accounts.length === 0) {
+                ctx.showToast('Add an account first');
+                ctx.setTab('accounts');
+              } else {
+                navigate('splitExpense', accounts[0]);
+              }
+            }}
+          >
+            <Icon name="plus" size={14} /> Add Split
+          </button>
+
         </div>
 
         {/* Summary Cards */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: '1fr 1fr', 
-          gap: 10, 
-          marginBottom: 16 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 10,
+          marginBottom: 16
         }}>
           <div className="card card-sm" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
@@ -121,16 +140,6 @@ export const SplitsPage = ({ ctx }) => {
         />
       </div>
 
-      <FAB 
-        onClick={() => {
-          if (accounts.length === 0) {
-            ctx.showToast('Add an account first');
-            ctx.setTab('accounts');
-          } else {
-            navigate('splitExpense', accounts[0]);
-          }
-        }} 
-      />
     </div>
   );
 };

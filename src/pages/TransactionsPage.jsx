@@ -1,7 +1,7 @@
 import { useState } from 'react';
-
+import { Icon } from '../components/common/Icon';
 export const TransactionsPage = ({ ctx }) => {
-  const { transactions, deleteTransaction, currencySymbol } = ctx;
+  const { transactions = [], deleteTransaction, currencySymbol } = ctx;
 
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -18,12 +18,14 @@ export const TransactionsPage = ({ ctx }) => {
   };
 
   // ✅ Get categories
-  const categories = ['all', ...new Set(transactions.map(t => t.category))];
+  const safeTransactions = transactions || [];
+
+  const categories = ['all', ...new Set(safeTransactions.map(t => t.category))];
 
   // ✅ Filter
   const filtered = selectedCategory === 'all'
-    ? transactions
-    : transactions.filter(t => t.category === selectedCategory);
+    ? safeTransactions
+    : safeTransactions.filter(t => t.category === selectedCategory);
 
   // ✅ Format Date
   const formatDate = (date) => {
@@ -42,17 +44,40 @@ export const TransactionsPage = ({ ctx }) => {
     <div className="page fade-slide">
 
       {/* HEADER */}
-      <div style={{ padding: '18px 18px 10px' }}>
-        <div style={{
-          fontSize: 22,
-          fontWeight: 700,
-          fontFamily: 'var(--font-head)'
-        }}>
-          Transactions
+      <div style={{
+        padding: '18px 18px 10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10
+      }}>
+
+        {/* BACK BUTTON */}
+        <div
+          onClick={() => ctx.setTab('home')}
+          style={{
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Icon name="arrow_left" size={18} />
         </div>
-        <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-          Track all your spending
+
+        {/* TITLE */}
+        <div>
+          <div style={{
+            fontSize: 22,
+            fontWeight: 700,
+            fontFamily: 'var(--font-head)'
+          }}>
+            Transactions
+          </div>
+
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+            Track all your spending
+          </div>
         </div>
+
       </div>
 
       {/* CATEGORY FILTER */}
@@ -176,7 +201,10 @@ export const TransactionsPage = ({ ctx }) => {
 
                   {/* DELETE */}
                   <div
-                    onClick={() => deleteTransaction(txn.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteTransaction(txn.id);
+                    }}
                     style={{
                       fontSize: 12,
                       opacity: 0.6,
