@@ -8,6 +8,13 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  useEffect(() => {
+    if (success) {
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    }
+  }, [success]);
   const [sessionReady, setSessionReady] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -15,45 +22,43 @@ export default function ResetPassword() {
 
   // ✅ Handle reset link session
   useEffect(() => {
-    const hash = window.location.hash;
+    const handleSession = async () => {
+      const hash = window.location.hash;
+      console.log("RESET HASH:", hash);
 
-    if (!hash.includes("access_token")) {
-      setError("Invalid or expired reset link");
-      return;
-    }
-
-    const params = new URLSearchParams(hash.substring(1));
-
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
-
-    if (!access_token) {
-      setError("Invalid or expired reset link");
-      return;
-    }
-
-    (async () => {
-      let result;
-
-      if (refresh_token) {
-        result = await supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
-      } else {
-        result = await supabase.auth.setSession({
-          access_token,
-        });
+      if (!hash || !hash.includes("access_token")) {
+        setError("Invalid or expired reset link. Please request a new one.");
+        return;
       }
 
-      if (result.error) {
-        setError("Failed to restore session");
+      const params = new URLSearchParams(hash.substring(1));
+
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+
+      console.log("ACCESS:", access_token);
+      console.log("REFRESH:", refresh_token);
+
+      if (!access_token || access_token.length < 20) {
+        setError("Invalid or expired reset link");
+        return;
+      }
+
+      const { error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+
+      if (error) {
+        console.error("SESSION ERROR:", error);
+        setError("Reset link expired. Please request a new one.");
       } else {
         setSessionReady(true);
       }
-    })();
-  }, []);
+    };
 
+    handleSession();
+  }, []);
   // ✅ Update password
   const handleUpdate = async () => {
     if (!password || !confirm) {
@@ -79,7 +84,7 @@ export default function ResetPassword() {
     });
 
     if (error) {
-      setError(error.message);
+      setError("Failed to update password. Try again.");
       setLoading(false);
       return;
     }
@@ -240,7 +245,18 @@ export default function ResetPassword() {
             </span>
           </div>
 
-          {error && <div style={S.err}>{error}</div>}
+          {error && (
+            <>
+              <div style={S.err}>{error}</div>
+
+              <button
+                style={{ ...S.btn, marginTop: 10 }}
+                onClick={() => (window.location.href = "/forgot-password")}
+              >
+                Request New Link
+              </button>
+            </>
+          )}
 
           {!sessionReady && !error && (
             <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", marginBottom: 10 }}>
@@ -253,7 +269,11 @@ export default function ResetPassword() {
             onClick={handleUpdate}
             disabled={loading || success || !sessionReady}
           >
-            {loading ? "Updating..." : "Update Password"}
+            {loading
+              ? "Updating..."
+              : !sessionReady
+                ? "Preparing..."
+                : "Update Password"}
           </button>
         </div>
       </div>
