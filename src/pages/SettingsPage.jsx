@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Icon } from '../components/common/Icon';
 import { CURRENCIES } from '../utils/constants';
+import { FeedbackModal } from '../components/settings/FeedbackModal';
 
 export const SettingsPage = ({ ctx, onLogout }) => {
   const { user, settings, updateSettings } = ctx;
   const [showCurrencySheet, setShowCurrencySheet] = useState(false);
   const [showThemeSheet, setShowThemeSheet] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const themes = [
     { id: 'dark', label: 'Dark Mode', icon: '🌙', desc: 'Easy on the eyes at night' },
@@ -123,6 +125,26 @@ export const SettingsPage = ({ ctx, onLogout }) => {
         </div>
 
         <div
+          className="settings-row"
+          onClick={() => setShowFeedback(true)}
+        >
+          <div className="settings-row-left">
+            <div className="settings-icon" style={{ background: 'rgba(99,102,241,.15)' }}>
+              💬
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>
+                Send Feedback
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                Help us improve Spendly
+              </div>
+            </div>
+          </div>
+          <Icon name="arrow_left" size={16} color="var(--muted)" />
+        </div>
+
+        <div
           className="settings-row btn-danger"
           onClick={onLogout}
           style={{
@@ -146,7 +168,7 @@ export const SettingsPage = ({ ctx, onLogout }) => {
           color: 'var(--muted2)',
           fontSize: 12
         }}>
-          Spendly v1.0 · Built with ❤️
+          Spendly v1.0
         </div>
       </div>
 
@@ -241,6 +263,29 @@ export const SettingsPage = ({ ctx, onLogout }) => {
           </div>
         </div>
       )}
+      {/* FEEDBACK MODAL */}
+      {showFeedback && (
+        <div className="overlay" onClick={() => setShowFeedback(false)}>
+          <div
+            className="sheet"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            <div className="sheet-handle" />
+
+            <FeedbackModal
+              user={user}
+              showToast={ctx.showToast}
+              onClose={() => setShowFeedback(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
+
   );
 };
