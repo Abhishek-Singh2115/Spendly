@@ -8,22 +8,16 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  useEffect(() => {
-    if (success) {
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 2000);
-    }
-  }, [success]);
   const [sessionReady, setSessionReady] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // ✅ Handle reset link session
+  // ✅ HANDLE RESET SESSION (FIXED)
   useEffect(() => {
-    const handleSession = async () => {
+    const handleRecovery = async () => {
       const hash = window.location.hash;
+
       console.log("RESET HASH:", hash);
 
       if (!hash || !hash.includes("access_token")) {
@@ -31,35 +25,28 @@ export default function ResetPassword() {
         return;
       }
 
-      const params = new URLSearchParams(hash.substring(1));
+      const { data, error } = await supabase.auth.getSession();
 
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-
-      console.log("ACCESS:", access_token);
-      console.log("REFRESH:", refresh_token);
-
-      if (!access_token || access_token.length < 20) {
-        setError("Invalid or expired reset link");
-        return;
-      }
-
-      const { error } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-      });
-
-      if (error) {
-        console.error("SESSION ERROR:", error);
-        setError("Reset link expired. Please request a new one.");
+      if (error || !data.session) {
+        setError("Invalid or expired reset link. Please request a new one.");
       } else {
         setSessionReady(true);
       }
     };
 
-    handleSession();
+    handleRecovery();
   }, []);
-  // ✅ Update password
+
+  // ✅ AUTO REDIRECT AFTER SUCCESS
+  useEffect(() => {
+    if (success) {
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    }
+  }, [success]);
+
+  // ✅ UPDATE PASSWORD
   const handleUpdate = async () => {
     if (!password || !confirm) {
       setError("Please fill all fields");
@@ -251,7 +238,9 @@ export default function ResetPassword() {
 
               <button
                 style={{ ...S.btn, marginTop: 10 }}
-                onClick={() => (window.location.href = "/forgot-password")}
+                onClick={() =>
+                  (window.location.href = "/forgot-password")
+                }
               >
                 Request New Link
               </button>
@@ -259,7 +248,14 @@ export default function ResetPassword() {
           )}
 
           {!sessionReady && !error && (
-            <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", marginBottom: 10 }}>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 13,
+                color: "#aaa",
+                marginBottom: 10,
+              }}
+            >
               Preparing secure session...
             </div>
           )}
@@ -272,8 +268,8 @@ export default function ResetPassword() {
             {loading
               ? "Updating..."
               : !sessionReady
-                ? "Preparing..."
-                : "Update Password"}
+              ? "Preparing..."
+              : "Update Password"}
           </button>
         </div>
       </div>
