@@ -3,7 +3,15 @@ import { Icon } from '../common/Icon';
 import { getToday } from '../../utils/helpers';
 
 export const AddIncomePage = ({ ctx, account }) => {
-  const { accounts, addTransaction, navigate, goBack, showToast, currencySymbol } = ctx;
+  const {
+    accounts,
+    addTransaction,
+    goBack,
+    showToast,
+    currencySymbol,
+    setTab,
+    setPageStack
+  } = ctx;
   const acc = accounts.find(a => a.id === account.id) || account;
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('salary');
@@ -28,6 +36,7 @@ export const AddIncomePage = ({ ctx, account }) => {
       showToast('Enter a valid amount');
       return;
     }
+
     addTransaction({
       accountId: acc.id,
       amount: amt,
@@ -36,8 +45,10 @@ export const AddIncomePage = ({ ctx, account }) => {
       description,
       date
     });
+
+    setPageStack([]);
+    setTab('home');
     showToast('Income added!');
-    navigate('accountDetail', acc);
   };
 
   const incomeCategories = [
