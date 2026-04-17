@@ -167,28 +167,46 @@ export const InsightsPage = ({ ctx }) => {
   }, [splits]);
 
   // Daily expense trend (last 7 days for daily/weekly, last 30 days for monthly)
+  // Trend data logic (Daily, Weekly, Monthly, or Yearly)
   const dailyTrendData = useMemo(() => {
-    const days = filter === 'yearly' ? 12 : filter === 'monthly' ? 30 : 7;
     const now = new Date();
     const data = [];
-
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(now.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const dayExpenses = summary.expenses.filter(t => t.date === dateStr);
-      const total = dayExpenses.reduce((sum, t) => sum + t.amount, 0);
-      
-      data.push({
-        date: filter === 'yearly' 
-          ? date.toLocaleDateString('en-US', { month: 'short' })
-          : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        amount: total
-      });
+    
+    if (filter === 'yearly') {
+      // Show last 12 months
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const month = d.getMonth();
+        const year = d.getFullYear();
+        
+        const monthTxns = transactions.filter(t => {
+          const td = new Date(t.date);
+          return td.getMonth() === month && td.getFullYear() === year && t.type === 'expense';
+        });
+        
+        data.push({
+          date: d.toLocaleDateString('en-US', { month: 'short' }),
+          amount: monthTxns.reduce((s, t) => s + t.amount, 0)
+        });
+      }
+    } else {
+      const days = filter === 'monthly' ? 30 : 7;
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(now.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayExpenses = summary.expenses.filter(t => t.date === dateStr);
+        const total = dayExpenses.reduce((sum, t) => sum + t.amount, 0);
+        
+        data.push({
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          amount: total
+        });
+      }
     }
     return data;
-  }, [summary.expenses, filter]);
+  }, [summary.expenses, transactions, filter]);
 
   // Smart insights
   const insights = useMemo(() => {
@@ -467,32 +485,46 @@ Income Transactions: ${summary.income.length}
   };
 
   return (
-    <div>
-      <div className="page-top">
-        <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
-          AI Insights
-        </div>
-        <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>
-          Smart analysis of your finances
+    <div style={{ paddingBottom: 20 }}>
+      {/* Premium Hero Header */}
+      <div className="insights-hero">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, position: 'relative', zIndex: 2 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 24, fontWeight: 800 }}>
+              AI Intelligence
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 2 }}>
+              Your financial health at a glance
+            </div>
+          </div>
+          <button 
+            onClick={handleDownloadReport}
+            className="icon-btn" 
+            style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', width: 44, height: 44 }}
+            title="Download Report"
+          >
+            📥
+          </button>
         </div>
 
         {/* Filter Pills */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', position: 'relative', zIndex: 2 }}>
           {['daily', 'weekly', 'monthly', 'yearly'].map(f => (
             <button
               key={f}
               className={`pill${filter === f ? ' active' : ''}`}
               onClick={() => setFilter(f)}
               style={{
-                padding: '8px 16px',
+                padding: '8px 18px',
                 borderRadius: '20px',
-                border: filter === f ? '2px solid var(--accent)' : '1px solid var(--border)',
-                background: filter === f ? 'rgba(99,102,241,0.15)' : 'var(--card)',
-                color: filter === f ? 'var(--accent)' : 'var(--text)',
+                border: '1px solid transparent',
+                background: filter === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                color: filter === f ? '#fff' : 'var(--text)',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.3s ease',
+                whiteSpace: 'nowrap'
               }}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -500,27 +532,27 @@ Income Transactions: ${summary.income.length}
           ))}
         </div>
 
-        {/* Summary Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-          <div className="card card-sm" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>Expenses</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 16, color: 'var(--red)' }}>
+        {/* Premium Summary Cards */}
+        <div className="summary-grid">
+          <div className="summary-pill glass-card fade-slide stagger-1">
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, fontWeight: 600 }}>EXPENSES</div>
+            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: 18, color: 'var(--red)' }}>
               {formatCurrency(summary.totalExpense, currencySymbol)}
             </div>
           </div>
-          <div className="card card-sm" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>Income</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 16, color: 'var(--green)' }}>
+          <div className="summary-pill glass-card fade-slide stagger-2">
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, fontWeight: 600 }}>INCOME</div>
+            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: 18, color: 'var(--green)' }}>
               {formatCurrency(summary.totalIncome, currencySymbol)}
             </div>
           </div>
-          <div className="card card-sm" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>Balance</div>
+          <div className="summary-pill glass-card fade-slide stagger-3">
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, fontWeight: 600 }}>SAVINGS</div>
             <div style={{ 
               fontFamily: 'var(--font-head)', 
-              fontWeight: 700, 
-              fontSize: 16, 
-              color: summary.remaining >= 0 ? 'var(--green)' : 'var(--red)' 
+              fontWeight: 800, 
+              fontSize: 18, 
+              color: summary.remaining >= 0 ? 'var(--cyan)' : 'var(--red)' 
             }}>
               {formatCurrency(summary.remaining, currencySymbol)}
             </div>
@@ -574,17 +606,17 @@ Income Transactions: ${summary.income.length}
               <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, paddingLeft: 4 }}>
                 Category Breakdown
               </div>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={categoryData}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
+                    innerRadius={50}
+                    outerRadius={85}
                     fill="#8884d8"
                     dataKey="value"
+                    stroke="none"
                   >
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -601,6 +633,16 @@ Income Transactions: ${summary.income.length}
                   />
                 </PieChart>
               </ResponsiveContainer>
+              {/* Legend */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginTop: 8 }}>
+                {categoryData.map((c, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 3, background: c.color, flexShrink: 0 }} />
+                    <span style={{ color: 'var(--muted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: 11, whiteSpace: 'nowrap' }}>{summary.totalExpense > 0 ? `${((c.value / summary.totalExpense) * 100).toFixed(0)}%` : '0%'}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Bar Chart - Category Totals */}
@@ -803,63 +845,51 @@ Income Transactions: ${summary.income.length}
         </div>
 
         {/* AI Chat Section */}
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>🤖</span>
-            <span>Ask AI Assistant</span>
+        <div className="card fade-slide stagger-5" style={{ marginBottom: 24, border: '1px solid rgba(99, 102, 241, 0.2)', background: 'rgba(99, 102, 241, 0.02)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 20 }}>🤖</span>
+            <span>Financial Assistant</span>
+            <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>AI Powered</div>
           </div>
           
-          <div style={{ 
-            maxHeight: '200px', 
-            overflowY: 'auto', 
-            marginBottom: 12,
-            background: 'var(--card2)',
-            borderRadius: '8px',
-            padding: '12px'
-          }}>
+          <div className="ai-chat-container" id="ai-chat">
             {chatMessages.map((msg, idx) => (
               <div
                 key={idx}
-                style={{
-                  marginBottom: 8,
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  background: msg.type === 'user' ? 'var(--accent)' : 'var(--border)',
-                  color: msg.type === 'user' ? '#fff' : 'var(--text)',
-                  fontSize: '13px',
-                  maxWidth: '85%',
-                  marginLeft: msg.type === 'user' ? 'auto' : '0',
-                  marginRight: msg.type === 'user' ? '0' : 'auto'
-                }}
+                className={`ai-bubble ${msg.type === 'user' ? 'ai-bubble-user' : 'ai-bubble-bot'}`}
               >
                 {msg.text}
               </div>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
             <input
               type="text"
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleAskAI()}
-              placeholder="Ask about your spending..."
+              placeholder="Ask me anything..."
               style={{
                 flex: 1,
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
+                padding: '12px 16px',
+                borderRadius: '14px',
+                border: '1.5px solid var(--border)',
                 background: 'var(--card2)',
                 color: 'var(--text)',
-                fontSize: '13px',
-                outline: 'none'
+                fontSize: '14px',
+                outline: 'none',
+                transition: 'border-color 0.2s'
               }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
             />
             <button
               onClick={handleAskAI}
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary"
+              style={{ width: 48, height: 48, padding: 0, borderRadius: '14px' }}
             >
-              Send
+              🚀
             </button>
           </div>
         </div>
