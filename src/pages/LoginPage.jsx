@@ -1,5 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
+
+/* ── keyframes injected once ── */
+const styleId = 'login-page-styles';
+if (typeof document !== 'undefined' && !document.getElementById(styleId)) {
+  const sheet = document.createElement('style');
+  sheet.id = styleId;
+  sheet.textContent = `
+    @keyframes lp-float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-40px) scale(1.1)}}
+    @keyframes lp-float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-25px,35px) scale(1.15)}}
+    @keyframes lp-float3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,25px) scale(1.05)}}
+    @keyframes lp-fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes lp-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+    @keyframes lp-pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.4)}50%{box-shadow:0 0 0 10px rgba(99,102,241,0)}}
+    @keyframes lp-spin{to{transform:rotate(360deg)}}
+    @keyframes lp-mailBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .lp-input:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(99,102,241,.18)!important}
+    .lp-btn-main:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 28px rgba(99,102,241,.45)}
+    .lp-btn-main:active:not(:disabled){transform:translateY(0) scale(.98)}
+    .lp-btn-google:hover:not(:disabled){border-color:var(--accent);background:rgba(99,102,241,.06)}
+    .lp-forgot:hover{color:var(--accent2)!important;text-decoration:underline!important}
+    .lp-tab:hover{background:rgba(99,102,241,.08)}
+    @media(min-width:768px){
+      .lp-wrap{max-width:420px!important}
+      .lp-card{padding:32px 28px!important}
+    }
+    @media(min-width:1200px){
+      .lp-wrap{max-width:440px!important}
+    }
+  `;
+  document.head.appendChild(sheet);
+}
 
 export const LoginPage = () => {
   const [mode, setMode] = useState('login');
@@ -9,6 +40,10 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { requestAnimationFrame(() => setMounted(true)); }, []);
 
   const clear = () => setError('');
 
@@ -42,34 +77,115 @@ export const LoginPage = () => {
     if (err) { setError(err.message); setLoading(false); }
   };
 
-  const S = {
-    page: { minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 20px', background: 'var(--bg)' },
-    wrap: { width: '100%', maxWidth: 360 },
-    logo: { textAlign: 'center', marginBottom: 6, fontFamily: 'var(--font-head)', fontSize: 36, fontWeight: 900, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' },
-    sub: { textAlign: 'center', color: 'var(--muted)', fontSize: 14, marginBottom: 28 },
-    card: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '22px 20px', marginBottom: 14 },
-    tabRow: { display: 'flex', gap: 6, marginBottom: 20, background: 'var(--bg)', borderRadius: 12, padding: 4 },
-    tab: (active) => ({ flex: 1, padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'all .2s', background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'transparent', color: active ? '#fff' : 'var(--muted)' }),
-    label: { fontSize: 12, color: 'var(--muted)', fontWeight: 600, marginBottom: 6, display: 'block' },
-    input: { width: '100%', padding: '11px 14px', borderRadius: 11, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 12 },
-    btn: { width: '100%', padding: '13px 0', borderRadius: 12, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', opacity: loading ? 0.7 : 1, marginTop: 4 },
-    divider: { display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0', color: 'var(--muted)', fontSize: 12 },
-    divLine: { flex: 1, height: 1, background: 'var(--border)' },
-    gBtn: { width: '100%', padding: '12px 0', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--text)', fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, opacity: loading ? 0.7 : 1 },
-    err: { color: 'var(--red)', fontSize: 13, textAlign: 'center', marginTop: 10, padding: '8px 12px', background: 'rgba(244,63,94,.1)', borderRadius: 8 },
+  /* ── shared styles ── */
+  const page = {
+    minHeight: '100%', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center',
+    padding: '24px 16px', background: 'var(--bg)',
+    position: 'relative', overflow: 'hidden',
+  };
+  const orb = (size, top, left, color, anim, dur) => ({
+    position: 'absolute', width: size, height: size, borderRadius: '50%',
+    background: color, filter: 'blur(80px)', opacity: 0.5, pointerEvents: 'none',
+    top, left, animation: `${anim} ${dur}s ease-in-out infinite`,
+  });
+  const wrap = { width: '100%', maxWidth: 380, position: 'relative', zIndex: 1 };
+  const card = {
+    background: 'rgba(30,41,59,.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid rgba(148,163,184,.12)', borderRadius: 22,
+    padding: '24px 20px', marginBottom: 14,
+    animation: mounted ? 'lp-fadeUp .5s cubic-bezier(.4,0,.2,1) .15s both' : 'none',
+  };
+  const logo = {
+    textAlign: 'center', marginBottom: 4, fontFamily: 'var(--font-head)',
+    fontSize: 38, fontWeight: 900, letterSpacing: '-1.5px',
+    background: 'linear-gradient(135deg,#818cf8,#a78bfa,#c084fc)',
+    backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+    animation: 'lp-shimmer 4s linear infinite',
+    opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(16px)',
+    transition: 'all .5s cubic-bezier(.4,0,.2,1)',
+  };
+  const sub = {
+    textAlign: 'center', color: 'var(--muted)', fontSize: 14, marginBottom: 28,
+    opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(12px)',
+    transition: 'all .5s cubic-bezier(.4,0,.2,1) .1s',
+  };
+  const tabRow = {
+    display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,.6)',
+    borderRadius: 14, padding: 4,
+  };
+  const tab = (active) => ({
+    flex: 1, padding: '10px 0', borderRadius: 11, border: 'none', cursor: 'pointer',
+    fontSize: 13, fontWeight: 700, letterSpacing: '.02em',
+    transition: 'all .25s cubic-bezier(.4,0,.2,1)',
+    background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'transparent',
+    color: active ? '#fff' : 'var(--muted)',
+    boxShadow: active ? '0 4px 16px rgba(99,102,241,.3)' : 'none',
+    fontFamily: 'var(--font-body)',
+  });
+  const label = {
+    fontSize: 11, color: 'var(--muted)', fontWeight: 700, marginBottom: 6,
+    display: 'block', textTransform: 'uppercase', letterSpacing: '.06em',
+  };
+  const input = {
+    width: '100%', padding: '12px 14px', borderRadius: 12,
+    border: '1.5px solid rgba(148,163,184,.18)', background: 'rgba(15,23,42,.5)',
+    color: 'var(--text)', fontSize: 15, outline: 'none', boxSizing: 'border-box',
+    marginBottom: 14, transition: 'all .22s cubic-bezier(.4,0,.2,1)',
+    fontFamily: 'var(--font-body)',
+  };
+  const btnMain = {
+    width: '100%', padding: '13px 0', borderRadius: 13, border: 'none',
+    cursor: loading ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700,
+    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff',
+    opacity: loading ? 0.7 : 1, marginTop: 6, transition: 'all .22s ease',
+    fontFamily: 'var(--font-body)', position: 'relative', overflow: 'hidden',
+  };
+  const divider = {
+    display: 'flex', alignItems: 'center', gap: 10, margin: '18px 0',
+    color: 'var(--muted)', fontSize: 12,
+  };
+  const divLine = { flex: 1, height: 1, background: 'rgba(148,163,184,.18)' };
+  const gBtn = {
+    width: '100%', padding: '12px 0', borderRadius: 13,
+    border: '1.5px solid rgba(148,163,184,.18)', background: 'rgba(30,41,59,.5)',
+    color: 'var(--text)', fontSize: 15, fontWeight: 600,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+    opacity: loading ? 0.7 : 1, transition: 'all .22s ease',
+    fontFamily: 'var(--font-body)',
+  };
+  const errBox = {
+    color: '#fb7185', fontSize: 13, textAlign: 'center', marginTop: 4, marginBottom: 4,
+    padding: '10px 14px', background: 'rgba(244,63,94,.1)',
+    border: '1px solid rgba(244,63,94,.2)', borderRadius: 10,
+    animation: 'lp-fadeUp .25s ease both',
+  };
+  const pwdToggle = {
+    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+    background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer',
+    padding: 4, display: 'flex', fontSize: 16,
+  };
+  const spinner = {
+    display: 'inline-block', width: 16, height: 16, border: '2px solid rgba(255,255,255,.3)',
+    borderTopColor: '#fff', borderRadius: '50%', animation: 'lp-spin .6s linear infinite',
+    marginRight: 8, verticalAlign: 'middle',
   };
 
+  /* ── Sent confirmation ── */
   if (sent) return (
-    <div style={S.page}>
-      <div style={S.wrap}>
-        <div style={S.logo}>Spendly</div>
-        <div style={{ ...S.card, textAlign: 'center' }}>
-          <div style={{ fontSize: 44, marginBottom: 12 }}>📬</div>
-          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Check your inbox</div>
-          <div style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
-            Confirmation link sent to <strong>{email}</strong>.<br />Click it then come back to sign in.
+    <div style={page}>
+      <div style={orb('260px', '-80px', '-60px', 'rgba(99,102,241,.35)', 'lp-float1', 7)} />
+      <div style={orb('200px', '60%', '70%', 'rgba(139,92,246,.3)', 'lp-float2', 9)} />
+      <div style={wrap} className="lp-wrap">
+        <div style={logo}>Spendly</div>
+        <div style={{ ...card, textAlign: 'center' }}>
+          <div style={{ fontSize: 52, marginBottom: 14, animation: 'lp-mailBounce 2s ease-in-out infinite' }}>📬</div>
+          <div style={{ fontWeight: 800, fontSize: 19, marginBottom: 8, color: 'var(--text)' }}>Check your inbox</div>
+          <div style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.7 }}>
+            Confirmation link sent to <strong style={{ color: '#a78bfa' }}>{email}</strong>.<br />Click it then come back to sign in.
           </div>
-          <button style={{ ...S.btn, marginTop: 20 }} onClick={() => { setSent(false); setMode('login'); }}>
+          <button className="lp-btn-main" style={{ ...btnMain, marginTop: 22 }} onClick={() => { setSent(false); setMode('login'); }}>
             Back to Sign In
           </button>
         </div>
@@ -77,71 +193,87 @@ export const LoginPage = () => {
     </div>
   );
 
+  /* ── Main login/signup ── */
   return (
-    <div style={S.page}>
-      <div style={S.wrap}>
-        <div style={S.logo}>Spendly</div>
-        <div style={S.sub}>Smart expense tracking 💸</div>
+    <div style={page}>
+      {/* Animated gradient orbs */}
+      <div style={orb('280px', '-100px', '-80px', 'rgba(99,102,241,.3)', 'lp-float1', 7)} />
+      <div style={orb('220px', '55%', '65%', 'rgba(139,92,246,.25)', 'lp-float2', 9)} />
+      <div style={orb('180px', '30%', '-40px', 'rgba(6,182,212,.2)', 'lp-float3', 11)} />
 
-        <div style={S.card}>
-          <div style={S.tabRow}>
+      <div style={wrap} className="lp-wrap">
+        <div style={logo}>Spendly</div>
+        <div style={sub}>Smart expense tracking ✨</div>
+
+        <div style={card} className="lp-card">
+          {/* Tabs */}
+          <div style={tabRow}>
             {['login', 'signup'].map(m => (
-              <button key={m} style={S.tab(mode === m)} onClick={() => { setMode(m); clear(); }}>
-                {m === 'login' ? 'Sign In' : 'Sign Up'}
+              <button key={m} className="lp-tab" style={tab(mode === m)} onClick={() => { setMode(m); clear(); }}>
+                {m === 'login' ? '🔑 Sign In' : '🚀 Sign Up'}
               </button>
             ))}
           </div>
 
+          {/* Name field (signup only) */}
           {mode === 'signup' && (
-            <div>
-              <label style={S.label}>Name</label>
-              <input style={S.input} placeholder="Your name" value={name} onChange={e => { setName(e.target.value); clear(); }} />
+            <div style={{ animation: 'lp-fadeUp .3s ease both' }}>
+              <label style={label}>Name</label>
+              <input className="lp-input" style={input} placeholder="Your name" value={name}
+                onChange={e => { setName(e.target.value); clear(); }} />
             </div>
           )}
 
+          {/* Email */}
           <div>
-            <label style={S.label}>Email</label>
-            <input style={S.input} type="email" placeholder="you@email.com" value={email} onChange={e => { setEmail(e.target.value); clear(); }} />
+            <label style={label}>Email</label>
+            <input className="lp-input" style={input} type="email" placeholder="you@email.com"
+              value={email} onChange={e => { setEmail(e.target.value); clear(); }} />
           </div>
 
+          {/* Password with toggle */}
           <div>
-            <label style={S.label}>Password</label>
-            <input style={S.input} type="password" placeholder="••••••••" value={password}
-              onChange={e => { setPassword(e.target.value); clear(); }}
-              onKeyDown={e => e.key === 'Enter' && handleEmailAuth()} />
+            <label style={label}>Password</label>
+            <div style={{ position: 'relative' }}>
+              <input className="lp-input" style={{ ...input, paddingRight: 42, marginBottom: 6 }}
+                type={showPwd ? 'text' : 'password'} placeholder="••••••••"
+                value={password}
+                onChange={e => { setPassword(e.target.value); clear(); }}
+                onKeyDown={e => e.key === 'Enter' && handleEmailAuth()} />
+              <button style={pwdToggle} onClick={() => setShowPwd(p => !p)} type="button" tabIndex={-1}
+                aria-label={showPwd ? 'Hide password' : 'Show password'}>
+                {showPwd ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           {/* Error */}
-          {error && <div style={S.err}>{error}</div>}
+          {error && <div style={errBox}>{error}</div>}
 
-          {/* Forgot password button (ALWAYS VISIBLE) */}
-          <div style={{ textAlign: "center", marginTop: 8 }}>
-            <button
-              type="button"
-              style={{
-                background: "none",
-                border: "none",
-                color: "#6366f1",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                console.log("CLICK WORKING");
-                window.dispatchEvent(new Event("open-forgot-password"));
-              }}
-            >
+          {/* Forgot password */}
+          <div style={{ textAlign: 'center', marginTop: 6, marginBottom: 4 }}>
+            <button type="button" className="lp-forgot" style={{
+              background: 'none', border: 'none', color: '#818cf8',
+              fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .2s',
+            }} onClick={() => {
+              console.log("CLICK WORKING");
+              window.dispatchEvent(new Event("open-forgot-password"));
+            }}>
               Forgot password?
             </button>
           </div>
 
-          <button style={S.btn} onClick={handleEmailAuth} disabled={loading}>
+          {/* Submit */}
+          <button className="lp-btn-main" style={btnMain} onClick={handleEmailAuth} disabled={loading}>
+            {loading && <span style={spinner} />}
             {loading ? 'Please wait…' : mode === 'login' ? 'Sign In →' : 'Create Account →'}
           </button>
 
-          <div style={S.divider}><div style={S.divLine} /><span>or</span><div style={S.divLine} /></div>
+          {/* Divider */}
+          <div style={divider}><div style={divLine} /><span>or</span><div style={divLine} /></div>
 
-          <button style={S.gBtn} onClick={handleGoogle} disabled={loading}>
+          {/* Google */}
+          <button className="lp-btn-google" style={gBtn} onClick={handleGoogle} disabled={loading}>
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.6 0 6.6 5.5 2.8 13.5l7.8 6C12.5 13 17.8 9.5 24 9.5z" />
               <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z" />
@@ -152,7 +284,10 @@ export const LoginPage = () => {
           </button>
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted2)', marginTop: 6 }}>
+        <p style={{
+          textAlign: 'center', fontSize: 12, color: 'var(--muted2)', marginTop: 8,
+          opacity: mounted ? 1 : 0, transition: 'opacity .5s ease .4s',
+        }}>
           {mode === 'login' ? "No account? Switch to Sign Up above." : "Have an account? Switch to Sign In above."}
         </p>
       </div>
