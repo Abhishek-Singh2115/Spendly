@@ -3,33 +3,40 @@ import { Icon } from '../common/Icon';
 import { CURRENCIES } from '../../utils/constants';
 
 export const AddAccountPage = ({ ctx }) => {
-  const { addAccount, navigate, goBack, showToast, settings } = ctx;
+  const { addAccount, goBack, showToast, settings } = ctx;
+
   const [form, setForm] = useState({
     name: '',
     holderName: '',
     startBalance: '',
     currency: settings.currency
   });
+
   const [loading, setLoading] = useState(false);
 
   const updateForm = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  // ✅ FIXED: handleSubmit is now async and properly awaits addAccount
-  // Previously: const acc = addAccount(form)  ← returned a Promise, not the account!
-  // Now:        const acc = await addAccount(form) ← waits for the real account object
   const handleSubmit = async () => {
     if (!form.name.trim()) {
       showToast('Please enter account name');
       return;
     }
+
     setLoading(true);
-    const acc = await addAccount(form);   // ← await is the critical fix
+    const acc = await addAccount(form);
     setLoading(false);
-    if (!acc) return;                     // addAccount returns null on error
+
+    if (!acc) return;
+
     showToast('Account created!');
-    navigate('accountDetail', acc);       // now acc is the real account object
+
+    // ✅ FIXED NAVIGATION (no stack issue)
+    ctx.setPageStack(prev => {
+      const newStack = prev.slice(0, -1);
+      return [...newStack, { page: 'accountDetail', data: acc }];
+    });
   };
 
   return (
@@ -38,6 +45,7 @@ export const AddAccountPage = ({ ctx }) => {
         <Icon name="arrow_left" size={16} />
         Back
       </button>
+
       <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, marginBottom: 20 }}>
         New Account
       </div>
@@ -75,7 +83,11 @@ export const AddAccountPage = ({ ctx }) => {
 
       <div className="input-group">
         <label>Currency</label>
-        <select className="input" value={form.currency} onChange={e => updateForm('currency', e.target.value)}>
+        <select
+          className="input"
+          value={form.currency}
+          onChange={e => updateForm('currency', e.target.value)}
+        >
           {CURRENCIES.map(c => (
             <option key={c.code} value={c.code}>
               {c.symbol} {c.name}
