@@ -15,18 +15,19 @@ export const BudgetPage = ({ ctx }) => {
   const [showUnbudgeted, setShowUnbudgeted] = useState(false);
 
   // Load budgets from Supabase
-  const loadBudgets = useCallback(async () => {
-    if (!user?.id) return;
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at');
-    if (error) { console.error('budgets fetch:', error.message); return; }
-    setBudgets(data || []);
+  useEffect(() => {
+    const loadBudgets = async () => {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at');
+      if (error) { console.error('budgets fetch:', error.message); return; }
+      setBudgets(data || []);
+    };
+    loadBudgets();
   }, [user?.id]);
-
-  useEffect(() => { loadBudgets(); }, [loadBudgets]);
 
   // Filter budgets for selected month
   const monthBudgets = budgets.filter(b => b.month === selectedMonth && b.year === selectedYear);

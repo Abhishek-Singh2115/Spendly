@@ -91,8 +91,8 @@ export const LoginPage = () => {
   });
   const wrap = { width: '100%', maxWidth: 380, position: 'relative', zIndex: 1 };
   const card = {
-    background: 'rgba(30,41,59,.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(148,163,184,.12)', borderRadius: 22,
+    background: 'var(--card)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid var(--border)', borderRadius: 22,
     padding: '24px 20px', marginBottom: 14,
     animation: mounted ? 'lp-fadeUp .5s cubic-bezier(.4,0,.2,1) .15s both' : 'none',
   };
@@ -111,7 +111,7 @@ export const LoginPage = () => {
     transition: 'all .5s cubic-bezier(.4,0,.2,1) .1s',
   };
   const tabRow = {
-    display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,.6)',
+    display: 'flex', gap: 4, marginBottom: 20, background: 'var(--card2)',
     borderRadius: 14, padding: 4,
   };
   const tab = (active) => ({
@@ -129,7 +129,7 @@ export const LoginPage = () => {
   };
   const input = {
     width: '100%', padding: '12px 14px', borderRadius: 12,
-    border: '1.5px solid rgba(148,163,184,.18)', background: 'rgba(15,23,42,.5)',
+    border: '1.5px solid var(--border)', background: 'var(--card2)',
     color: 'var(--text)', fontSize: 15, outline: 'none', boxSizing: 'border-box',
     marginBottom: 14, transition: 'all .22s cubic-bezier(.4,0,.2,1)',
     fontFamily: 'var(--font-body)',
@@ -145,10 +145,10 @@ export const LoginPage = () => {
     display: 'flex', alignItems: 'center', gap: 10, margin: '18px 0',
     color: 'var(--muted)', fontSize: 12,
   };
-  const divLine = { flex: 1, height: 1, background: 'rgba(148,163,184,.18)' };
+  const divLine = { flex: 1, height: 1, background: 'var(--border)' };
   const gBtn = {
     width: '100%', padding: '12px 0', borderRadius: 13,
-    border: '1.5px solid rgba(148,163,184,.18)', background: 'rgba(30,41,59,.5)',
+    border: '1.5px solid var(--border)', background: 'var(--card2)',
     color: 'var(--text)', fontSize: 15, fontWeight: 600,
     cursor: loading ? 'not-allowed' : 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,

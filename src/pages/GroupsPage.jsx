@@ -1,4 +1,4 @@
-export const GroupsPage = ({ ctx }) => {
+export const GroupsPage = () => {
   return (
     <div>
       <div className="page-top">
